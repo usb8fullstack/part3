@@ -17,17 +17,6 @@ morgan.token('body', function getBody (req, res) {
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
 
 /*************************************************/
-const mongoose = require('mongoose')
-const url = `mongodb+srv://hp:${process.env.PASSWORD}@cluster0.2znsjnu.mongodb.net/phonebookApp?retryWrites=true&w=majority`
-
-mongoose.connect(url)
-
-const personSchema = new mongoose.Schema({
-  name: String,
-  number: String,
-})
-const Person = mongoose.model('Person', personSchema)
-
 let persons = [
   { 
     "id": 1,
@@ -52,13 +41,7 @@ let persons = [
 ]
 
 /*************************************************/
-personSchema.set('toJSON', {
-  transform: (document, returnedObject) => {
-    returnedObject.id = returnedObject._id.toString()
-    delete returnedObject._id
-    delete returnedObject.__v
-  }
-})
+const Person = require('./models/person')
 
 app.get('/', (request, response) => {
   response.send('<h1>Hello World!</h1>')
