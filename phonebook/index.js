@@ -8,6 +8,8 @@ app.use(cors())
 
 app.use(express.json())
 
+app.use(express.static('build'))
+
 morgan.token('body', function getBody (req, res) {
   return JSON.stringify(req.body)
 })
@@ -110,6 +112,11 @@ app.post('/api/persons', (request, response) => {
   response.json(person)
 })
 
+const unknownEndpoint = (request, response) => {
+  response.status(404).send({ error: 'unknown endpoint' })
+}
+
+app.use(unknownEndpoint)
 
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
