@@ -56,38 +56,38 @@ app.get('/api/persons', (request, response) => {
 })
 
 app.get('/api/info', (request, response) => {
-  response.send(`
-    <div>Phonebook has info for ${persons.length} people</div>
-    <div>${new Date()}</div>`
-  )
+  Person
+    .find({})
+    .then(persons => {
+      response.send(`
+      <div>Phonebook has info for ${persons.length} people</div>
+      <div>${new Date()}</div>`
+    )
+    })
 })
 
 app.get('/api/persons/:id', (request, response) => {
-  const id = Number(request.params.id)
-  const person = persons.find(person => person.id === id)
-  
-  if (person) {
-    response.json(person)
-  } else {
-    response.status(404).end()
-  }
+  Person.findById(request.params.id)
+    .then(person => {
+      if (person) {
+        response.json(person)
+      } else {
+        response.status(404).end()
+      }
+    })
+    .catch(error => {
+      console.log(error)
+      // response.status(500).end()  // NOTE: status 400 is better
+      response.status(400).send({ error: 'malformatted id' })
+    })
 })
 
+// TODO: delete method, id is string for frontend
 app.delete('/api/persons/:id', (request, response) => {
   const id = Number(request.params.id)
   persons = persons.filter(person => person.id !== id)
   response.status(204).end()
 })
-
-const generateId = () => {
-  // const maxId = persons.length > 0
-  //   ? Math.max(...persons.map(n => n.id))
-  //   : 0
-  // return maxId + 1
-  let id = Math.floor(Math.random() * 1000000)
-  // console.log(id)
-  return id
-}
 
 app.post('/api/persons', (request, response) => {
   const body = request.body
@@ -96,29 +96,33 @@ app.post('/api/persons', (request, response) => {
     return response.status(400).json({ error: 'name or number is missing' })
   }
   
-  const checkDuplicate = () => {
-    for (let o of persons) {
-      if (o.name === body.name) {
-        return true
-      }
-    }
-    return false
-  }
-  if (checkDuplicate()) {
-    return response.status(400).json({
-      error: 'The name already exists in the phonebook. It must be unique'
-    })
-  }
+  // TODO:
+  // const checkDuplicate = () => {
+  //   for (let o of persons) {
+  //     if (o.name === body.name) {
+  //       return true
+  //     }
+  //   }
+  //   return false
+  // }
+  // if (checkDuplicate()) {
+  //   return response.status(400).json({
+  //     error: 'The name already exists in the phonebook. It must be unique'
+  //   })
+  // }
 
-  const person = {
+  const person = new Person({
     name: body.name,
     number: body.number,
-    id: generateId(),
-  }
-  persons = persons.concat(person)
-  response.json(person)
+  })
+  person
+    .save()
+    .then(savedPerson => {
+      response.json(savedPerson)
+    })
 })
 
+/********************************************************/
 const unknownEndpoint = (request, response) => {
   response.status(404).send({ error: 'unknown endpoint' })
 }
