@@ -25,30 +25,6 @@ morgan.token('body', function getBody (req, res) {
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
 
 /*************************************************/
-let persons = [
-  { 
-    "id": 1,
-    "name": "Arto Hellas", 
-    "number": "040-123456"
-  },
-  { 
-    "id": 2,
-    "name": "Ada Lovelace", 
-    "number": "39-44-5323523"
-  },
-  { 
-    "id": 3,
-    "name": "Dan Abramov", 
-    "number": "12-43-234345"
-  },
-  { 
-    "id": 4,
-    "name": "Mary Poppendieck", 
-    "number": "39-23-6423122"
-  }
-]
-
-/*************************************************/
 const Person = require('./models/person')
 
 app.get('/', (request, response) => {
@@ -92,11 +68,12 @@ app.get('/api/persons/:id', (request, response, next) => {
     .catch(error => next(error))
 })
 
-// TODO: delete method, id is string for frontend
-app.delete('/api/persons/:id', (request, response) => {
-  const id = Number(request.params.id)
-  persons = persons.filter(person => person.id !== id)
-  response.status(204).end()
+app.delete('/api/persons/:id', (request, response, next) => {
+  Person.findByIdAndRemove(request.params.id)
+  .then((result) => {
+    response.status(result ? 204 : 404).end()  // NOTE: 404 id not found  >> frontend then throw err
+  })
+  .catch(error => next(error))  // NOTE: id not valid type
 })
 
 app.post('/api/persons', (request, response) => {
