@@ -1,16 +1,24 @@
 const express = require('express')
-const morgan = require('morgan')
-require('dotenv').config()
 const app = express()
+require('dotenv').config()
 
 const cors = require('cors')
 app.use(cors())
 
+const requestLogger = (request, response, next) => {
+  console.log('Method:', request.method)
+  console.log('Path:  ', request.path)
+  console.log('Body:  ', request.body)
+  console.log('---')
+  next()
+}
+
+app.use(express.static('build'))
 app.use(express.json())
+app.use(requestLogger)
 
 /*************************************************/
-app.use(express.static('build'))
-
+const morgan = require('morgan')
 morgan.token('body', function getBody (req, res) {
   return JSON.stringify(req.body)
 })
@@ -77,7 +85,8 @@ app.get('/api/persons/:id', (request, response) => {
     })
     .catch(error => {
       console.log(error)
-      // response.status(500).end()  // NOTE: status 400 is better
+      // response.status(500).end()
+      // NOTE: status 400 is better: https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.1
       response.status(400).send({ error: 'malformatted id' })
     })
 })
@@ -126,8 +135,12 @@ app.post('/api/persons', (request, response) => {
 const unknownEndpoint = (request, response) => {
   response.status(404).send({ error: 'unknown endpoint' })
 }
-
 app.use(unknownEndpoint)
+
+const errorHandler = (error, request, response, next) => {
+  // ...
+}
+app.use(errorHandler)
 
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
