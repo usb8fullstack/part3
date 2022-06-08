@@ -74,7 +74,7 @@ app.get('/api/info', (request, response) => {
     })
 })
 
-app.get('/api/persons/:id', (request, response) => {
+app.get('/api/persons/:id', (request, response, next) => {
   Person.findById(request.params.id)
     .then(person => {
       if (person) {
@@ -83,12 +83,13 @@ app.get('/api/persons/:id', (request, response) => {
         response.status(404).end()
       }
     })
-    .catch(error => {
-      console.log(error)
-      // response.status(500).end()
-      // NOTE: status 400 is better: https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.1
-      response.status(400).send({ error: 'malformatted id' })
-    })
+    // .catch(error => {
+    //   console.log(error)
+    //   // response.status(500).end()
+    //   // NOTE: status 400 is better: https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.1
+    //   response.status(400).send({ error: 'malformatted id' })
+    // })
+    .catch(error => next(error))
 })
 
 // TODO: delete method, id is string for frontend
@@ -138,7 +139,11 @@ const unknownEndpoint = (request, response) => {
 app.use(unknownEndpoint)
 
 const errorHandler = (error, request, response, next) => {
-  // ...
+  console.error(error.message)
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' })
+  } 
+  next(error)
 }
 app.use(errorHandler)
 
