@@ -42,7 +42,7 @@ if (process.argv.length === 3) {
     .then(() => {
       console.log('connected')
       return Person.find({})
-      return Person.find({ name: "hihi"})
+      // return Person.find({ name: "hihi"})
     })
     .then(result => {
       result.forEach(person => {

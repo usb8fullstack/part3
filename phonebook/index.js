@@ -19,7 +19,8 @@ app.use(requestLogger)
 
 /*************************************************/
 const morgan = require('morgan')
-morgan.token('body', function getBody (req, res) {
+// morgan.token('body', function getBody (req, res) {
+morgan.token('body', function getBody (req) {
   return JSON.stringify(req.body)
 })
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
@@ -44,9 +45,9 @@ app.get('/api/info', (request, response) => {
     .find({})
     .then(persons => {
       response.send(`
-      <div>Phonebook has info for ${persons.length} people</div>
-      <div>${new Date()}</div>`
-    )
+        <div>Phonebook has info for ${persons.length} people</div>
+        <div>${new Date()}</div>`
+      )
     })
 })
 
@@ -69,11 +70,12 @@ app.get('/api/persons/:id', (request, response, next) => {
 })
 
 app.delete('/api/persons/:id', (request, response, next) => {
-  Person.findByIdAndRemove(request.params.id)
-  .then((result) => {
-    response.status(result ? 204 : 404).end()  // NOTE: 404 id not found  >> frontend then throw err
-  })
-  .catch(error => next(error))  // NOTE: id not valid type
+  Person
+    .findByIdAndRemove(request.params.id)
+    .then((result) => {
+      response.status(result ? 204 : 404).end()  // NOTE: 404 id not found  >> frontend then throw err
+    })
+    .catch(error => next(error))  // NOTE: id not valid type
 })
 
 app.post('/api/persons', (request, response, next) => {
@@ -82,7 +84,7 @@ app.post('/api/persons', (request, response, next) => {
   // if (!body.name || !body.number) {
   //   return response.status(400).json({ error: 'name or number is missing' })
   // }
-  
+
   Person
     .find({})
     .then(persons => {
@@ -119,7 +121,7 @@ app.put('/api/persons/:id', (request, response, next) => {
   Person
     .findByIdAndUpdate(
       request.params.id,
-      { name, number }, 
+      { name, number },
       { new: true, runValidators: true, context: 'query' }
     )
     .then(updatedPerson => {

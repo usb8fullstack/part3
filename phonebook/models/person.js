@@ -9,7 +9,7 @@ const url = process.env.MONGODB_URI
 console.log('connecting to', url)
 
 mongoose.connect(url)
-  .then(result => {
+  .then(() => {
     console.log('connected to MongoDB')
   })
   .catch((error) => {
@@ -33,7 +33,7 @@ const personSchema = new mongoose.Schema({
         // return /\d{2}-\d{6,}/.test(v);
         // return /^\d{2}-\d{6,}$/.test(v);
         // regex matches the previous token 1 or 2 times
-        return /^\d{1}-\d{6,}$|^\d{2}-\d{6,}$/.test(v);
+        return /^\d{1}-\d{6,}$|^\d{2}-\d{6,}$/.test(v)
       },
       message: props => `${props.value} is not a valid phone number!`
     },
