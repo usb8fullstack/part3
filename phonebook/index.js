@@ -76,12 +76,12 @@ app.delete('/api/persons/:id', (request, response, next) => {
   .catch(error => next(error))  // NOTE: id not valid type
 })
 
-app.post('/api/persons', (request, response) => {
+app.post('/api/persons', (request, response, next) => {
   const body = request.body
 
-  if (!body.name || !body.number) {
-    return response.status(400).json({ error: 'name or number is missing' })
-  }
+  // if (!body.name || !body.number) {
+  //   return response.status(400).json({ error: 'name or number is missing' })
+  // }
   
   Person
     .find({})
@@ -109,23 +109,24 @@ app.post('/api/persons', (request, response) => {
         .then(savedPerson => {
           response.json(savedPerson)
         })
+        .catch(error => next(error))  // NOTE: for ... validation
     })
 })
 
 app.put('/api/persons/:id', (request, response, next) => {
-  const body = request.body
+  const { name, number } = request.body
 
-  const person = {
-    name: body.name,
-    number: body.number,
-  }
-
-  Person.findByIdAndUpdate(request.params.id, person, { new: true })
+  Person
+    .findByIdAndUpdate(
+      request.params.id,
+      { name, number }, 
+      { new: true, runValidators: true, context: 'query' }
+    )
     .then(updatedPerson => {
       if (updatedPerson) { response.status(200).json(updatedPerson) }
       else { response.status(404).end() }
     })
-    .catch(error => next(error))
+    .catch(error => next(error))  // NOTE: for ... validation
 })
 
 /********************************************************/
@@ -138,7 +139,9 @@ const errorHandler = (error, request, response, next) => {
   console.error(error.message)
   if (error.name === 'CastError') {
     return response.status(400).send({ error: 'malformatted id' })
-  } 
+  } else if (error.name === 'ValidationError') {
+    return response.status(400).json({ error: error.message })
+  }
   next(error)
 }
 app.use(errorHandler)
