@@ -83,30 +83,49 @@ app.post('/api/persons', (request, response) => {
     return response.status(400).json({ error: 'name or number is missing' })
   }
   
-  // TODO:
-  // const checkDuplicate = () => {
-  //   for (let o of persons) {
-  //     if (o.name === body.name) {
-  //       return true
-  //     }
-  //   }
-  //   return false
-  // }
-  // if (checkDuplicate()) {
-  //   return response.status(400).json({
-  //     error: 'The name already exists in the phonebook. It must be unique'
-  //   })
-  // }
+  Person
+    .find({})
+    .then(persons => {
+      const checkDuplicate = () => {
+        for (let o of persons) {
+          if (o.name === body.name) {
+            return true
+          }
+        }
+        return false
+      }
+      if (checkDuplicate()) {
+        return response.status(400).json({
+          error: 'The name already exists in the phonebook. It must be unique'
+        })
+      }
 
-  const person = new Person({
+      const person = new Person({
+        name: body.name,
+        number: body.number,
+      })
+      person
+        .save()
+        .then(savedPerson => {
+          response.json(savedPerson)
+        })
+    })
+})
+
+app.put('/api/persons/:id', (request, response, next) => {
+  const body = request.body
+
+  const person = {
     name: body.name,
     number: body.number,
-  })
-  person
-    .save()
-    .then(savedPerson => {
-      response.json(savedPerson)
+  }
+
+  Person.findByIdAndUpdate(request.params.id, person, { new: true })
+    .then(updatedPerson => {
+      if (updatedPerson) { response.status(200).json(updatedPerson) }
+      else { response.status(404).end() }
     })
+    .catch(error => next(error))
 })
 
 /********************************************************/
